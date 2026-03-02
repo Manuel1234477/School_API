@@ -1,77 +1,62 @@
-mod controllers;
-mod middlewares;
-mod models;
-mod routes;
-mod services;
-mod utils;
-
-use axum::{
-    http::StatusCode,
-    response::IntoResponse,
-    routing::get,
-    Json, Router,
-};
-use serde_json::json;
+use axum::{Router, http::Method};
 use sqlx::postgres::PgPoolOptions;
-use tower_http::cors::CorsLayer;
+use std::net::SocketAddr;
+use tower_http::cors::{CorsLayer, Any};
 use tracing_subscriber;
 
-use routes::auth_routes;
-use utils::JwtConfig;
+mod models;
+mod controllers;
+mod services;
+mod routes;
+mod middlewares;
+mod utils;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
     // Initialize tracing
     tracing_subscriber::fmt::init();
 
     // Load environment variables
-    dotenv::dotenv().ok();
+    dotenvy::dotenv().ok();
 
-    // Database connection
+    // Get database URL from environment
     let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://user:password@localhost/school_db".to_string());
+        .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/school_db".to_string());
 
+    // Create database connection pool
+    tracing::info!("Connecting to database...");
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&database_url)
         .await?;
 
-    // Run migrations
-    sqlx::migrate!("./migrations")
-        .run(&pool)
+    tracing::info!("Database connected successfully!");
+
+    // Test the connection
+    sqlx::query("SELECT 1")
+        .fetch_one(&pool)
         .await?;
 
-    tracing::info!("Database migrations completed successfully");
+    tracing::info!("Database health check passed!");
 
-    // JWT configuration
-    let jwt_config = JwtConfig::from_env();
+    // Configure CORS
+    let cors = CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_origin(Any)
+        .allow_headers(Any);
 
-    // Build router
+    // Build application router
     let app = Router::new()
-        // Health check endpoint
-        .route("/health", get(health_check))
-        
-        // Authentication routes
-        .nest("/auth", auth_routes(pool.clone(), jwt_config.clone()))
-        
-        // CORS layer
-        .layer(CorsLayer::permissive());
+        .nest("/api", routes::create_routes())
+        .layer(cors)
+        .with_state(pool);
 
-    // Start server
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await?;
-    tracing::info!("Server running on http://127.0.0.1:3000");
+    // Start server on port 8080
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
+    tracing::info!("Server starting on {}", addr);
 
+    let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
 
     Ok(())
-}
-
-/// Health check endpoint
-async fn health_check() -> impl IntoResponse {
-    let response = json!({
-        "status": "healthy",
-        "timestamp": chrono::Utc::now().to_rfc3339(),
-    });
-
-    (StatusCode::OK, Json(response))
 }
