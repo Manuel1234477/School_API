@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod auth_controllers;
 pub mod admin;
 pub mod student;
 pub mod mentor;

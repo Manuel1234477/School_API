@@ -21,6 +21,10 @@ pub fn auth_routes(pool: PgPool, jwt_config: JwtConfig) -> Router {
         .route("/mentor/register", post(AuthController::register_mentor))
         .route("/mentor/login", post(AuthController::login_mentor))
         
+        // OTP routes
+        .route("/verify-otp", post(AuthController::verify_otp_login))
+        .route("/resend-otp", post(AuthController::resend_otp))
+        
         // Common authentication routes
         .route("/refresh", post(AuthController::refresh_token))
         .route("/logout", post(AuthController::logout))

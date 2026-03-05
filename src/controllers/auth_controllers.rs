@@ -11,8 +11,19 @@ use uuid::Uuid;
 use crate::models::{
     AuthResponse, LoginRequest, RefreshTokenRequest, RegisterRequest, UserResponse,
 };
-use crate::services::AuthService;
+use crate::services::{AuthService, EmailService, OtpService};
 use crate::utils::{AuthError, JwtConfig};
+
+#[derive(serde::Deserialize)]
+pub struct OtpVerificationRequest {
+    pub email: String,
+    pub otp: String,
+}
+
+#[derive(serde::Deserialize)]
+pub struct ResendOtpRequest {
+    pub email: String,
+}
 
 pub struct AuthController;
 
@@ -26,7 +37,19 @@ impl AuthController {
         // Force role to admin
         req.role = "admin".to_string();
 
-        let user = AuthService::register(&pool, req).await?;
+        let user = AuthService::register(&pool, req.clone()).await?;
+
+        // Send welcome email
+        let email_config = crate::services::EmailConfig::from_env()?;
+        let email_service = EmailService::new(email_config);
+        
+        let full_name = format!("{} {}", user.first_name, user.last_name);
+        if let Err(e) = email_service
+            .send_welcome_email(&user.email, &full_name, &user.role)
+            .await
+        {
+            tracing::warn!("Failed to send welcome email: {:?}", e);
+        }
 
         let (access_token, refresh_token) = crate::utils::generate_tokens(
             user.id,
@@ -47,16 +70,56 @@ impl AuthController {
         Ok((StatusCode::CREATED, Json(response)))
     }
 
-    /// Login as Admin
+    /// Login as Admin with OTP
     /// POST /auth/admin/login
     pub async fn login_admin(
-        State((pool, jwt_config)): State<(PgPool, JwtConfig)>,
+        State((pool, _jwt_config)): State<(PgPool, JwtConfig)>,
         Json(req): Json<LoginRequest>,
     ) -> Result<impl IntoResponse, AuthError> {
         let user = AuthService::login(&pool, req).await?;
 
         // Verify user is admin
         AuthService::validate_role(&user.role, &["admin"])?;
+
+        // Generate and send OTP
+        let otp = OtpService::create_otp(&pool, user.id, "login", 10).await?;
+
+        let email_config = crate::services::EmailConfig::from_env()?;
+        let email_service = EmailService::new(email_config);
+        
+        let full_name = format!("{} {}", user.first_name, user.last_name);
+        email_service
+            .send_otp_email(&user.email, &otp, &full_name)
+            .await?;
+
+        let response = json!({
+            "message": "OTP sent to your email",
+            "user_id": user.id,
+            "email": user.email,
+            "requires_otp": true
+        });
+
+        Ok((StatusCode::OK, Json(response)))
+    }
+
+    /// Verify OTP for login
+    /// POST /auth/verify-otp
+    pub async fn verify_otp_login(
+        State((pool, jwt_config)): State<(PgPool, JwtConfig)>,
+        Json(req): Json<OtpVerificationRequest>,
+    ) -> Result<impl IntoResponse, AuthError> {
+        // Find user by email
+        let user = sqlx::query_as::<_, crate::models::User>(
+            "SELECT id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at FROM users WHERE email = $1"
+        )
+        .bind(&req.email)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| AuthError::DatabaseError(e.to_string()))?
+        .ok_or(AuthError::InvalidCredentials)?;
+
+        // Verify OTP
+        OtpService::verify_otp(&pool, user.id, &req.otp, "login").await?;
 
         let (access_token, refresh_token) = crate::utils::generate_tokens(
             user.id,
@@ -77,6 +140,39 @@ impl AuthController {
         Ok((StatusCode::OK, Json(response)))
     }
 
+    /// Resend OTP
+    /// POST /auth/resend-otp
+    pub async fn resend_otp(
+        State((pool, _jwt_config)): State<(PgPool, JwtConfig)>,
+        Json(req): Json<ResendOtpRequest>,
+    ) -> Result<impl IntoResponse, AuthError> {
+        let user = sqlx::query_as::<_, crate::models::User>(
+            "SELECT id, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at FROM users WHERE email = $1"
+        )
+        .bind(&req.email)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| AuthError::DatabaseError(e.to_string()))?
+        .ok_or(AuthError::UserNotFound)?;
+
+        let otp = OtpService::resend_otp(&pool, user.id, "login").await?;
+
+        let email_config = crate::services::EmailConfig::from_env()?;
+        let email_service = EmailService::new(email_config);
+        
+        let full_name = format!("{} {}", user.first_name, user.last_name);
+        email_service
+            .send_otp_email(&user.email, &otp, &full_name)
+            .await?;
+
+        let response = json!({
+            "message": "OTP resent to your email",
+            "email": user.email
+        });
+
+        Ok((StatusCode::OK, Json(response)))
+    }
+
     /// Register a new Student user
     /// POST /auth/student/register
     pub async fn register_student(
@@ -87,6 +183,18 @@ impl AuthController {
         req.role = "student".to_string();
 
         let user = AuthService::register(&pool, req).await?;
+
+        // Send welcome email
+        let email_config = crate::services::EmailConfig::from_env()?;
+        let email_service = EmailService::new(email_config);
+        
+        let full_name = format!("{} {}", user.first_name, user.last_name);
+        if let Err(e) = email_service
+            .send_welcome_email(&user.email, &full_name, &user.role)
+            .await
+        {
+            tracing::warn!("Failed to send welcome email: {:?}", e);
+        }
 
         let (access_token, refresh_token) = crate::utils::generate_tokens(
             user.id,
@@ -147,6 +255,18 @@ impl AuthController {
         req.role = "mentor".to_string();
 
         let user = AuthService::register(&pool, req).await?;
+
+        // Send welcome email
+        let email_config = crate::services::EmailConfig::from_env()?;
+        let email_service = EmailService::new(email_config);
+        
+        let full_name = format!("{} {}", user.first_name, user.last_name);
+        if let Err(e) = email_service
+            .send_welcome_email(&user.email, &full_name, &user.role)
+            .await
+        {
+            tracing::warn!("Failed to send welcome email: {:?}", e);
+        }
 
         let (access_token, refresh_token) = crate::utils::generate_tokens(
             user.id,

@@ -76,7 +76,7 @@ impl From<User> for UserResponse {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct RegisterRequest {
     pub email: String,
     pub password: String,
