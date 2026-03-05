@@ -71,6 +71,7 @@ mod controller_tests {
 
         assert_eq!(admin.email, "admin@example.com");
         assert_eq!(admin.user_id, user_id);
+        assert!(!admin.email.is_empty());
     }
 
     #[test]
@@ -893,6 +894,7 @@ mod controller_tests {
 
         assert!(school_admin.email.contains("admin"));
         assert_eq!(school_admin.user_id, user_id);
+        assert!(!school_admin.email.is_empty());
     }
 
     #[test]
