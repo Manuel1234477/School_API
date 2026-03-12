@@ -292,10 +292,7 @@ impl EmailTemplate {
                 <div class="label">Interview Venue</div>
                 <div class="value">{}</div>
             </div>
-            <div class="note-box">
-                <div class="label">What to expect</div>
-                <p style="margin: 6px 0 0;">Our admissions team will reach out to you with the exact date and time. Please keep an eye on your inbox for scheduling details.</p>
-            </div>
+
             <p>We look forward to meeting you.</p>
             <p>Best regards,<br><strong>BuidlFlow Admissions Team</strong></p>
         </div>
