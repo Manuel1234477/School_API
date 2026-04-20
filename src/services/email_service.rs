@@ -408,6 +408,201 @@ impl EmailTemplate {
         )
     }
 
+    pub fn course_registration_email(applicant_name: &str, course_name: &str) -> String {
+        format!(
+            r#"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: 'Courier New', Courier, monospace; background-color: #ffffff; margin: 0; padding: 40px 20px; color: #1a1a1a; }}
+        .container {{ max-width: 560px; margin: 0 auto; }}
+        .header {{ border: 2px solid #1a1a1a; padding: 30px; margin-bottom: 30px; }}
+        .header .label {{ font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 8px; }}
+        .header h1 {{ margin: 0; font-size: 26px; font-weight: bold; }}
+        .header p {{ margin: 10px 0 0; font-size: 14px; color: #444; }}
+        .content {{ padding: 0 4px; font-size: 14px; line-height: 1.8; }}
+        .info-box {{ border: 1px solid #1a1a1a; padding: 20px; margin: 20px 0; }}
+        .info-box .label {{ font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 6px; }}
+        .info-box .value {{ font-size: 15px; font-weight: bold; }}
+        .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="label">Application Received</div>
+            <h1>We Got Your Application!</h1>
+            <p>Your course application has been submitted.</p>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{}</strong>,</p>
+            <p>Thank you for applying! We have received your application for the following course:</p>
+            <div class="info-box">
+                <div class="label">Course</div>
+                <div class="value">{}</div>
+            </div>
+            <p>Our team will review your application and get back to you shortly. You will receive an email once a decision has been made.</p>
+            <p>Best regards,<br><strong>BuidlFlow Admissions Team</strong></p>
+        </div>
+        <div class="footer">
+            &copy; 2026 BuidlFlow. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+            "#,
+            applicant_name, course_name
+        )
+    }
+
+    pub fn course_acceptance_email(applicant_name: &str, course_name: &str) -> String {
+        format!(
+            r#"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: 'Courier New', Courier, monospace; background-color: #ffffff; margin: 0; padding: 40px 20px; color: #1a1a1a; }}
+        .container {{ max-width: 560px; margin: 0 auto; }}
+        .header {{ border: 2px solid #1a1a1a; padding: 30px; margin-bottom: 30px; }}
+        .header .label {{ font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 8px; }}
+        .header h1 {{ margin: 0; font-size: 26px; font-weight: bold; }}
+        .header p {{ margin: 10px 0 0; font-size: 14px; color: #444; }}
+        .content {{ padding: 0 4px; font-size: 14px; line-height: 1.8; }}
+        .info-box {{ border: 1px solid #1a1a1a; padding: 20px; margin: 20px 0; }}
+        .info-box .label {{ font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 6px; }}
+        .info-box .value {{ font-size: 15px; font-weight: bold; }}
+        .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="label">Application Accepted</div>
+            <h1>You've Been Accepted!</h1>
+            <p>Congratulations on your acceptance.</p>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{}</strong>,</p>
+            <p>We are thrilled to inform you that your application has been <strong>accepted</strong>!</p>
+            <div class="info-box">
+                <div class="label">Course</div>
+                <div class="value">{}</div>
+            </div>
+            <p>You will receive further details about the course start date and onboarding process soon. Stay tuned!</p>
+            <p>Best regards,<br><strong>BuidlFlow Admissions Team</strong></p>
+        </div>
+        <div class="footer">
+            &copy; 2026 BuidlFlow. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+            "#,
+            applicant_name, course_name
+        )
+    }
+
+    pub fn course_start_reminder_email(applicant_name: &str, course_name: &str, start_date: &str) -> String {
+        format!(
+            r#"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: 'Courier New', Courier, monospace; background-color: #ffffff; margin: 0; padding: 40px 20px; color: #1a1a1a; }}
+        .container {{ max-width: 560px; margin: 0 auto; }}
+        .header {{ border: 2px solid #1a1a1a; padding: 30px; margin-bottom: 30px; }}
+        .header .label {{ font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 8px; }}
+        .header h1 {{ margin: 0; font-size: 26px; font-weight: bold; }}
+        .header p {{ margin: 10px 0 0; font-size: 14px; color: #444; }}
+        .content {{ padding: 0 4px; font-size: 14px; line-height: 1.8; }}
+        .info-box {{ border: 1px solid #1a1a1a; padding: 20px; margin: 20px 0; }}
+        .info-box .label {{ font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 6px; }}
+        .info-box .value {{ font-size: 15px; font-weight: bold; }}
+        .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="label">Course Starting Soon</div>
+            <h1>Your Course Starts Today!</h1>
+            <p>Get ready — it's time to begin.</p>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{}</strong>,</p>
+            <p>This is a reminder that your course is starting today. We're excited to have you!</p>
+            <div class="info-box">
+                <div class="label">Course</div>
+                <div class="value">{}</div>
+            </div>
+            <div class="info-box">
+                <div class="label">Start Date</div>
+                <div class="value">{}</div>
+            </div>
+            <p>Log in to your account to access course materials and get started.</p>
+            <p>Best regards,<br><strong>BuidlFlow Team</strong></p>
+        </div>
+        <div class="footer">
+            &copy; 2026 BuidlFlow. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+            "#,
+            applicant_name, course_name, start_date
+        )
+    }
+
+    pub fn newsletter_email(subscriber_name: &str, subject: &str, content: &str, unsubscribe_url: &str) -> String {
+        format!(
+            r#"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: 'Courier New', Courier, monospace; background-color: #ffffff; margin: 0; padding: 40px 20px; color: #1a1a1a; }}
+        .container {{ max-width: 560px; margin: 0 auto; }}
+        .header {{ border: 2px solid #1a1a1a; padding: 30px; margin-bottom: 30px; }}
+        .header .label {{ font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 8px; }}
+        .header h1 {{ margin: 0; font-size: 26px; font-weight: bold; }}
+        .content {{ padding: 0 4px; font-size: 14px; line-height: 1.8; }}
+        .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; }}
+        .unsubscribe {{ font-size: 11px; color: #999; margin-top: 10px; }}
+        .unsubscribe a {{ color: #999; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="label">Newsletter</div>
+            <h1>{}</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{}</strong>,</p>
+            {}
+            <p>Best regards,<br><strong>BuidlFlow Team</strong></p>
+        </div>
+        <div class="footer">
+            &copy; 2026 BuidlFlow. All rights reserved.
+            <div class="unsubscribe">
+                <a href="{}">Unsubscribe</a> from this newsletter.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+            "#,
+            subject, subscriber_name, content, unsubscribe_url
+        )
+    }
+
     pub fn rejection_email(applicant_name: &str, course_name: &str) -> String {
         format!(
             r#"
