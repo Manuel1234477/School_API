@@ -16,6 +16,7 @@ use crate::routes::auth_routes::auth_routes;
 use crate::routes::application_routes::application_routes;
 use crate::routes::student_routes::student_routes;
 use crate::routes::mentor_routes::mentor_routes;
+use crate::routes::newsletter_routes::newsletter_routes;
 use crate::state::AppState;
 use crate::utils::JwtConfig;
 
@@ -62,16 +63,23 @@ pub fn build_app(pool: PgPool) -> Router {
         .route("/health", get(crate::routes::health::health_check))
         // Public application endpoints (no auth)
         .merge(application_routes(pool.clone()))
+        // Newsletter routes (public subscribe/unsubscribe, admin send)
+        .merge(newsletter_routes(app_state.clone()))
         // Auth routes (public)
         .nest("/auth", auth_routes(pool.clone(), jwt_config.clone()))
         // Protected routes
         .merge(admin_protected)
         .merge(student_mentor_protected)
         // Swagger UI
-        .merge(
-            SwaggerUi::new("/docs")
-                .url("/api-docs/openapi.json", ApiDoc::openapi()),
-        )
+        .merge({
+            let mut openapi = ApiDoc::openapi();
+            let base_url = std::env::var("BASE_URL")
+                .unwrap_or_else(|_| "http://localhost:3000".to_string());
+            openapi.servers = Some(vec![
+                utoipa::openapi::ServerBuilder::new().url(base_url).build()
+            ]);
+            SwaggerUi::new("/docs").url("/api-docs/openapi.json", openapi)
+        })
         // CORS
         .layer(CorsLayer::permissive())
 }

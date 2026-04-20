@@ -4,7 +4,7 @@
 
 Successfully integrated comprehensive Swagger/OpenAPI 3.0 documentation into the School Management API built with Rust and Axum.
 
-## Completed Tasks
+ca## Completed Tasks
 
 ### ✅ Phase 1: Dependencies and Setup (Tasks 1-2)
 - Added `utoipa` 4.2 with axum_extras, chrono, and uuid features

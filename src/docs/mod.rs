@@ -59,6 +59,11 @@ use crate::docs::security::SecurityAddon;
         crate::routes::application_routes::submit_application,
         crate::routes::application_routes::list_available_courses,
         
+        // Newsletter endpoints
+        crate::routes::newsletter_routes::subscribe,
+        crate::routes::newsletter_routes::unsubscribe,
+        crate::routes::newsletter_routes::send_newsletter,
+        
         // Student endpoints
         crate::routes::student_routes::get_dashboard,
         crate::routes::student_routes::get_profile,
@@ -100,7 +105,13 @@ use crate::docs::security::SecurityAddon;
             crate::models::ApplicationResponse,
             
             // Error models
-            crate::utils::ErrorResponse
+            crate::utils::ErrorResponse,
+            
+            // Newsletter models
+            crate::services::newsletter_service::SubscribeRequest,
+            crate::services::newsletter_service::UnsubscribeRequest,
+            crate::services::newsletter_service::SendNewsletterRequest,
+            crate::services::newsletter_service::SubscriberResponse
         )
     ),
     tags(
@@ -109,7 +120,8 @@ use crate::docs::security::SecurityAddon;
         (name = "Authentication", description = "User authentication and authorization"),
         (name = "Admin", description = "Administrative operations (admin role required)"),
         (name = "Student", description = "Student operations (student role required)"),
-        (name = "Mentor", description = "Mentor operations (mentor role required)")
+        (name = "Mentor", description = "Mentor operations (mentor role required)"),
+        (name = "Newsletter", description = "Newsletter subscribe/unsubscribe and send")
     ),
     modifiers(&SecurityAddon)
 )]

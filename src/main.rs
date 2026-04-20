@@ -37,6 +37,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tracing::info!("Database migrations completed successfully");
 
+    // Spawn the scheduler in the background
+    {
+        use crate::services::{EmailConfig, EmailService, SchedulerService};
+        use std::sync::Arc;
+
+        let email_service = EmailConfig::from_env()
+            .ok()
+            .map(|cfg| Arc::new(EmailService::new(cfg)));
+
+        let scheduler = SchedulerService::new(pool.clone(), email_service);
+        tokio::spawn(async move {
+            scheduler.run().await;
+        });
+        tracing::info!("Scheduler started");
+    }
+
     // Build the application
     let app = app::build_app(pool);
 
